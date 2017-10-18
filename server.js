@@ -37,7 +37,7 @@ app.post('/login', function(req, res) {
     var sql = "select distinct Id,Password from seoungjin_user where Id = ? and Password  = ?";
     var args = [body.Id, body.Password];
     connection.query(sql, args, function(err, results, fields) {
-      if (err) {
+      if (err || JSON.stringify(results[0]) == null) {
         res.sendStatus(500);
         console.log('error');
         return;

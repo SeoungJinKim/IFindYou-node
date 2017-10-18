@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/SeoungJinKim/IFindYou-node#readme",
   "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
     "express": "^4.16.2",
     "package": "^1.0.1"
   },
