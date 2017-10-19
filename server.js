@@ -101,7 +101,6 @@ app.get('/loadStarData', function(req, res) {
           if (results.length != 0) {
             check = true;
             res.status(201).send(results);
-            console.log("star" + JSON.stringify(results));
           } else res.sendStatus(204);
         });
       }
@@ -111,32 +110,68 @@ app.get('/loadStarData', function(req, res) {
 
 app.get('/loadSearchData', function(req, res) {
   var sql;
-  var args = [req.query.Name, req.query.Unit];
-  if (args[0].length == 0) {
-    if (args[1] == "전체") {
+  var args = [req.query.Unit, req.query.Name];
+  if (args[1].length == 0) {
+    if (args[0] == "전체") {
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user';
+      connection.query(sql, function(err, results, fields) {
+        if (err) {
+          res.sendStatus(400);
+          return;
+        }
+        if (results.length == 0) {
+          res.sendStatus(204);
+        } else {
+          res.status(201).send(results);
+          res.end();
+        }
+      });
     } else {
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Unit = ?';
+      connection.query(sql, args[0], function(err, results, fields) {
+        if (err) {
+          res.sendStatus(400);
+          return;
+        }
+        if (results.length == 0) {
+          res.sendStatus(204);
+        } else {
+          res.status(201).send(results);
+          res.end();
+        }
+      });
     }
   } else {
-    if (args[1] == "전체") {
+    if (args[0] == "전체") {
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Name = ?';
+      connection.query(sql, args[1], function(err, results, fields) {
+        if (err) {
+          res.sendStatus(400);
+          return;
+        }
+        if (results.length == 0) {
+          res.sendStatus(204);
+        } else {
+          res.status(201).send(results);
+          res.end();
+        }
+      });
     } else {
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Unit = ? and Name = ?';
+      connection.query(sql, args, function(err, results, fields) {
+        if (err) {
+          res.sendStatus(400);
+          return;
+        }
+        if (results.length == 0) {
+          res.sendStatus(204);
+        } else {
+          res.status(201).send(results);
+          res.end();
+        }
+      });
     }
   }
-  connection.query(sql, args, function(err, results, fields) {
-    if (err) {
-      res.sendStatus(400);
-      return;
-    }
-    if (results.length == 0) {
-      res.sendStatus(204);
-    } else {
-      res.status(201).send(results);
-      res.end();
-    }
-  });
 });
 
 app.get('/image/:filename', function(req, res) {
