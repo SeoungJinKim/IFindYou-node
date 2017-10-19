@@ -156,8 +156,9 @@ app.get('/loadSearchData', function(req, res) {
   var args = [req.query.Unit, req.query.Name, req.query.Id];
   if (args[1].length == 0) {
     if (args[0] == "전체") {
+      var args = [req.query.Id];
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Id <> ?';
-      connection.query(sql,args[2], function(err, results, fields) {
+      connection.query(sql, args[2], function(err, results, fields) {
         if (err) {
           console.log(err);
           res.sendStatus(400);
@@ -171,8 +172,9 @@ app.get('/loadSearchData', function(req, res) {
         }
       });
     } else {
+      var args = [req.query.Unit, req.query.Id];
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Unit = ? And Id <> ?';
-      connection.query(sql, args[0], args[2], function(err, results, fields) {
+      connection.query(sql, args[0,2], function(err, results, fields) {
         if (err) {
           res.sendStatus(400);
           return;
@@ -187,9 +189,11 @@ app.get('/loadSearchData', function(req, res) {
     }
   } else {
     if (args[0] == "전체") {
+      var args = [req.query.Name, req.query.Id];
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Name = ? And Id <> ?';
-      connection.query(sql, args[1],args[2], function(err, results, fields) {
+      connection.query(sql, args,  function(err, results, fields) {
         if (err) {
+          console.log( "여기");
           res.sendStatus(400);
           return;
         }
@@ -201,6 +205,7 @@ app.get('/loadSearchData', function(req, res) {
         }
       });
     } else {
+      var args = [req.query.Unit, req.query.Name, req.query.Id];
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Unit = ? And Name = ? And Id <> ?';
       connection.query(sql, args, function(err, results, fields) {
         if (err) {
