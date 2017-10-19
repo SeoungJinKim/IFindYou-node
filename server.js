@@ -18,37 +18,28 @@ var savePath = 'C://work//express_test//upload//'
 
 var isFormData = function(req) {
   var type = req.headers['content-type'] || '';
+  console.log("Content-Type: " + type + "req:" + req);
   return 0 == type.indexOf('multipart/form-data');
 }
 
-app.post('/login', function(req, res) {
-  var form = new formidable.IncomingForm();
-  var body = {};
+app.get('/login', function(req, res) {
 
-  if (!isFormData(req)) {
-    res.status(400).end('Bad Request: expecting multipart/form-data');
-    return;
-  }
-  form.on('field', function(name, value) {
-    body[name] = value;
-  });
+  var args = [req.query.Id , req.query.Password];
+  var sql = 'SELECT UserNumber,Id,Name,Rank,Position,Content,PhoneNumber,Status,ImgName from seoungjin_user where Id = ? and Password = ?';
 
-  form.on('end', function(fields, file) {
-    var sql = "select distinct Id,Password from seoungjin_user where Id = ? and Password  = ?";
-    var args = [body.Id, body.Password];
-    connection.query(sql, args, function(err, results, fields) {
-      if (err || JSON.stringify(results[0]) == null) {
-        res.sendStatus(500);
-        console.log('error');
-        return;
-      }
-      console.log("login success");
-      console.log("id :" + JSON.stringify(results[0].Id));
-      console.log("pw :" + JSON.stringify(results[0].Password));
-      res.sendStatus(200);
-    });
+  console.log(sql);
+  connection.query(sql,args,  function(err, results, fields) {
+    if (err) {
+      res.sendStatus(400);
+      return;
+    }
+    if (results.length == 0) {
+      res.sendStatus(204);
+    } else {
+      res.status(201).send(results);
+      res.end();
+    }
   });
-  form.parse(req);
 });
 
 app.post('/signup', function(req, res) {
@@ -87,6 +78,35 @@ app.post('/signup', function(req, res) {
     });
   });
   form.parse(req);
+});
+
+app.get('/loadStarData', function(req, res) {
+  var sql = 'SELECT StarId from seoungjin_user_star where Id = ?';
+  connection.query(sql, req.query.Id, function(err, rows, fields) {
+    if (err) {
+      res.sendStatus(400);
+      return;
+    }
+    if (rows.length == 0) {
+      res.sendStatus(204);
+    } else {
+      var check = false;
+      for (var i = 0; i < rows.length; i++) {
+        sql = 'SELECT UserNumber,Id,Name,Rank,Position,Content,PhoneNumber,Status,ImgName from seoungjin_user where UserNumber = ?';
+        connection.query(sql, JSON.stringify(rows[i].StarId), function(err, results, fields) {
+          if (err) {
+            res.sendStatus(400);
+            return;
+          }
+          if (results.length != 0) {
+            check = true;
+            res.status(201).send(results);
+            console.log("star" + JSON.stringify(results));
+          }
+        });
+      }
+    }
+  });
 });
 
 app.get('/image/:filename', function(req, res) {
