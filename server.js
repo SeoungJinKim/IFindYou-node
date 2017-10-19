@@ -45,10 +45,6 @@ app.post('/signup', function(req, res) {
   var form = new formidable.IncomingForm();
   var body = {};
 
-  if (!isFormData(req)) {
-    res.status(400).end('Bad Request: expecting multipart/form-data');
-    return;
-  }
   form.on('field', function(name, value) {
     body[name] = value;
   });
@@ -70,10 +66,57 @@ app.post('/signup', function(req, res) {
     connection.query(sql, args, function(err, results, fields) {
       if (err) {
         res.sendStatus(500);
-        console.log('error');
+        console.log(err);
         return;
       }
-      res.sendStatus(200);
+      res.sendStatus(201);
+    });
+  });
+  form.parse(req);
+});
+
+app.post('/starManage', function(req, res) {
+  var form = new formidable.IncomingForm();
+  var sql = 'Select * From seoungjin_user_star Where Id = ? and StarId = ?';
+  var body = {};
+
+  form.on('field', function(name, value) {
+    body[name] = value;
+  });
+
+  form.on('end', function(fields, files) {
+    var args = [body.Id, body.StarId];
+    connection.query(sql, args, function(err, results, fields) {
+      if (err) {
+        console.log("select문 오류");
+        res.sendStatus(400);
+        return
+      }
+      if (results.length == 0) {
+        console.log("insert문");
+        sql = 'Insert into seoungjin_user_star' +
+          '(Id, StarId)' +
+          'values(?,?)';
+        connection.query(sql, args, function(err, results, fields) {
+          if (err) {
+            console.log("insert문 오류");
+            res.sendStatus(400);
+            return;
+          }
+          res.sendStatus(201);
+        });
+      } else {
+        console.log("delete문");
+        sql = 'Delete from seoungjin_user_star Where Id = ? and StarId = ?';
+        connection.query(sql, args, function(err, results, fields) {
+          if (err) {
+            console.log("delete문 오류");
+            res.sendStatus(400);
+            return;
+          }
+          res.sendStatus(410);
+        });
+      }
     });
   });
   form.parse(req);
@@ -110,12 +153,13 @@ app.get('/loadStarData', function(req, res) {
 
 app.get('/loadSearchData', function(req, res) {
   var sql;
-  var args = [req.query.Unit, req.query.Name];
+  var args = [req.query.Unit, req.query.Name, req.query.Id];
   if (args[1].length == 0) {
     if (args[0] == "전체") {
-      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user';
-      connection.query(sql, function(err, results, fields) {
+      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Id <> ?';
+      connection.query(sql,args[2], function(err, results, fields) {
         if (err) {
+          console.log(err);
           res.sendStatus(400);
           return;
         }
@@ -127,8 +171,8 @@ app.get('/loadSearchData', function(req, res) {
         }
       });
     } else {
-      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Unit = ?';
-      connection.query(sql, args[0], function(err, results, fields) {
+      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Unit = ? And Id <> ?';
+      connection.query(sql, args[0], args[2], function(err, results, fields) {
         if (err) {
           res.sendStatus(400);
           return;
@@ -143,8 +187,8 @@ app.get('/loadSearchData', function(req, res) {
     }
   } else {
     if (args[0] == "전체") {
-      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Name = ?';
-      connection.query(sql, args[1], function(err, results, fields) {
+      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Name = ? And Id <> ?';
+      connection.query(sql, args[1],args[2], function(err, results, fields) {
         if (err) {
           res.sendStatus(400);
           return;
@@ -157,7 +201,7 @@ app.get('/loadSearchData', function(req, res) {
         }
       });
     } else {
-      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Unit = ? and Name = ?';
+      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Unit = ? And Name = ? And Id <> ?';
       connection.query(sql, args, function(err, results, fields) {
         if (err) {
           res.sendStatus(400);
