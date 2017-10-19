@@ -24,11 +24,10 @@ var isFormData = function(req) {
 
 app.get('/login', function(req, res) {
 
-  var args = [req.query.Id , req.query.Password];
+  var args = [req.query.Id, req.query.Password];
   var sql = 'SELECT UserNumber,Id,Name,Rank,Position,Content,PhoneNumber,Status,ImgName from seoungjin_user where Id = ? and Password = ?';
 
-  console.log(sql);
-  connection.query(sql,args,  function(err, results, fields) {
+  connection.query(sql, args, function(err, results, fields) {
     if (err) {
       res.sendStatus(400);
       return;
@@ -92,9 +91,10 @@ app.get('/loadStarData', function(req, res) {
     } else {
       var check = false;
       for (var i = 0; i < rows.length; i++) {
-        sql = 'SELECT UserNumber,Id,Name,Rank,Position,Content,PhoneNumber,Status,ImgName from seoungjin_user where UserNumber = ?';
-        connection.query(sql, JSON.stringify(rows[i].StarId), function(err, results, fields) {
+        sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Id = ?';
+        connection.query(sql, rows[i].StarId, function(err, results, fields) {
           if (err) {
+            console.log(err);
             res.sendStatus(400);
             return;
           }
@@ -102,9 +102,39 @@ app.get('/loadStarData', function(req, res) {
             check = true;
             res.status(201).send(results);
             console.log("star" + JSON.stringify(results));
-          }
+          } else res.sendStatus(204);
         });
       }
+    }
+  });
+});
+
+app.get('/loadSearchData', function(req, res) {
+  var sql;
+  var args = [req.query.Name, req.query.Unit];
+  if (args[0].length == 0) {
+    if (args[1] == "전체") {
+      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user';
+    } else {
+      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Unit = ?';
+    }
+  } else {
+    if (args[1] == "전체") {
+      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Name = ?';
+    } else {
+      sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user where Unit = ? and Name = ?';
+    }
+  }
+  connection.query(sql, args, function(err, results, fields) {
+    if (err) {
+      res.sendStatus(400);
+      return;
+    }
+    if (results.length == 0) {
+      res.sendStatus(204);
+    } else {
+      res.status(201).send(results);
+      res.end();
     }
   });
 });
