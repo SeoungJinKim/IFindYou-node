@@ -75,6 +75,34 @@ app.post('/signup', function(req, res) {
   form.parse(req);
 });
 
+app.post('/update', function(req, res) {
+  var form = new formidable.IncomingForm();
+  var sql = 'Update seoungjin_user set ' +
+    'Name = ?, Rank = ?, Position = ?, Unit = ?, Content = ?, PhoneNumber = ?, Status = ?' +
+    'Where Id = ?';
+  var body = {};
+
+  form.on('field', function(name, value) {
+    body[name] = value;
+  });
+
+  form.on('end', function(fields, files) {
+    var args = [body.Name,
+      body.Rank, body.Position, body.Unit,
+      body.Content, body.PhoneNumber, body.Status, body.Id
+    ];
+    connection.query(sql, args, function(err, results, fields) {
+      if (err) {
+        res.sendStatus(500);
+        console.log(err);
+        return;
+      }
+      res.sendStatus(200);
+    });
+  });
+  form.parse(req);
+});
+
 app.post('/starManage', function(req, res) {
   var form = new formidable.IncomingForm();
   var sql = 'Select * From seoungjin_user_star Where Id = ? and StarId = ?';
@@ -93,7 +121,6 @@ app.post('/starManage', function(req, res) {
         return
       }
       if (results.length == 0) {
-        console.log("insert문");
         sql = 'Insert into seoungjin_user_star' +
           '(Id, StarId)' +
           'values(?,?)';
@@ -106,7 +133,6 @@ app.post('/starManage', function(req, res) {
           res.sendStatus(201);
         });
       } else {
-        console.log("delete문");
         sql = 'Delete from seoungjin_user_star Where Id = ? and StarId = ?';
         connection.query(sql, args, function(err, results, fields) {
           if (err) {
@@ -191,7 +217,7 @@ app.get('/loadSearchData', function(req, res) {
     if (args[0] == "전체") {
       var args = [req.query.Name, req.query.Id];
       sql = 'SELECT UserNumber,Id,Name,Rank,Position,Unit,Content,PhoneNumber,Status,ImgName from seoungjin_user Where Name = ? And Id <> ?';
-      connection.query(sql, args,  function(err, results, fields) {
+      connection.query(sql, args, function(err, results, fields) {
         if (err) {
           res.sendStatus(400);
           return;
